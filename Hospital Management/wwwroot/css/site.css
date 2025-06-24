@@ -17,6 +17,22 @@ html {
   min-height: 100%;
 }
 
-body {
-  margin-bottom: 60px;
+.navbar{
+    min-height: 7vh;
+}
+
+.content {
+    min-height: 86vh;
+}
+
+.login_container{
+    min-height: 84vh !important;
+}
+
+.container{
+    margin-top: 0;
+}
+
+.footer{
+    min-height: 7vh;
 }

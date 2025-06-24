@@ -1,0 +1,74 @@
+﻿@model Hospital_Management.Models.PatientDashboardViewModel
+
+@{
+    ViewBag.Title = "Patient Dashboard";
+    Layout = "_Layout";
+    var index = 0;
+}
+
+<div class="container pt-5">
+    <h2>Welcome, @Model.User.Name!</h2>
+
+    <div class="row">
+        <!-- Appointment Form -->
+        <div class="col-md-6">
+            <h4>Create Appointment</h4>
+            <form method="post" action="/Appointment/Create">
+                <input type="hidden" name="PatientID" value="@Model.User.UserID" />
+
+                <div class="mb-3">
+                    <label for="DoctorID" class="form-label">Select Doctor</label>
+                    <select name="DoctorID" class="form-select" required>
+                        <option value="">-- Select a Doctor --</option>
+                        @foreach (var doctor in Model.Doctors)
+                        {
+                            <option value="@doctor.DoctorID">@doctor.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="AppointmentDate" class="form-label">Appointment Date</label>
+                    <input type="datetime-local" name="AppointmentDate" class="form-control" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Book Appointment</button>
+            </form>
+        </div>
+
+        <!-- Appointment History -->
+        <div class="col-md-6">
+            <h4>Appointment History</h4>
+            @if (Model.Appointments.Any())
+            {
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Doctor</th>
+                            <th>Patient</th>
+                            <th>Appointment Date</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appointment in Model.Appointments)
+                        {
+                            <tr>
+                                <td>@(++index)</td>
+                                <td>@appointment.doctorName</td>
+                                <td>@appointment.patientName</td>
+                                <td>@appointment.AppointmentDate.ToLocalTime()</td>
+                                <td>@appointment.CreatedAt.ToLocalTime()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No appointments found.</p>
+            }
+        </div>
+    </div>
+</div>

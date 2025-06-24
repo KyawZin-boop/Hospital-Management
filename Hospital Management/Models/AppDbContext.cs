@@ -9,7 +9,7 @@ namespace Hospital_Management.Models
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<User> User { get; set; }
+        public DbSet<Appointment> Appointment { get; set; }
     }
 }

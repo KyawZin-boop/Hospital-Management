@@ -1,7 +1,22 @@
+
+using Hospital_Management.Models;
+using Hospital_Management.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Register LoginService
+builder.Services.AddScoped<LoginService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AppointmentService>();   
+
+
+// Register your DbContext if not already
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
 
 var app = builder.Build();
 
@@ -22,6 +37,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Login}/{action=Index}/{id?}");
 
 app.Run();

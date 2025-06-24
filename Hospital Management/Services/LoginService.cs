@@ -2,75 +2,57 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 
-namespace Hospital_Management.Services
+namespace Hospital_Management.Services;
+
+public class LoginService
 {
-    public class LoginService
+    private readonly UserService _userService;
+    private readonly AppDbContext _context;
+    public LoginService(UserService userService, AppDbContext context)
     {
-        private readonly UserService _userService;
-        private readonly AppDbContext _context;
-        public LoginService(UserService userService, AppDbContext context)
+        _userService = userService;
+        _context = context;
+    }
+    public async Task<Response> Execute(LoginDTO requestModel)
+    {
+        if(requestModel.Email == null || requestModel.Password == null)
         {
-            _userService = userService;
-            _context = context;
-        }
-        public async Task<LoginResponseModel> Execute(LoginRequestModel requestModel)
-        {
-            LoginResponseModel responseModel = new();
-
-            try
+            return new Response
             {
-                var user = await _db.Users.FirstOrDefaultAsync(x => x.Email == requestModel.Email);
-                if (user == null)
-                {
-                    responseModel.Success = false;
-                    responseModel.Message = "User not found.";
-                    return responseModel;
-                }
-
-                if (user.Status == "N")
-                {
-                    responseModel.Success = false;
-                    responseModel.Message = "User not verified.";
-                    return responseModel;
-                }
-
-                var passwordHash = DevCode.HashPassword(requestModel.Password);
-                if (!string.Equals(passwordHash, user.PasswordHash))
-                {
-                    responseModel.Success = false;
-                    responseModel.Message = "Wrong credentials";
-                    return responseModel;
-                }
-
-                LoginTokenModel loginTokenModel = new()
-                {
-                    UserId = user.Id,
-                    Name = user.Name,
-                    Email = user.Email,
-                    PhoneNumber = user.Phone,
-                    ExpireTime = DateTime.Now.AddMinutes(5),
-                    Role = user.Role,
-
-                };
-
-                var token = loginTokenModel.ToJson().ToEncrypt();
-
-                responseModel.Success = true;
-                responseModel.Message = "Success";
-                responseModel.Token = token;
-                return responseModel;
-
-            }
-            catch (Exception ex)
-            {
-                responseModel.Success = false;
-                responseModel.Message = ex.ToString();
-                return responseModel;
-            }
+                Message = "Email and Password are required.",
+                Success = false,
+                Data = null
+            };
         }
-        public async Task LogoutAsync()
+        var user = await _context.User.AsNoTracking().FirstOrDefaultAsync(x => x.Email == requestModel.Email && x.Password==requestModel.Password);
+        if (user == null)
         {
-            // Implement logout logic if needed
+            return new Response
+            {
+                Message = "Invalid email or password.",
+                Success = false,
+                Data = null
+            };
         }
+        
+        return new Response
+        {
+            Message = "Login successful.",
+            Success = true,
+            Data = new User
+            {
+                UserID = user.UserID,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                ActiveFlag = user.ActiveFlag
+            }
+        };
+    }
+    public async Task LogoutAsync()
+    {
+        // Implement logout logic if needed
     }
 }
