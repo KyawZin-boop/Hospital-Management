@@ -46,12 +46,18 @@ namespace Hospital_Management.Models
         public required IEnumerable<Doctor> Doctors { get; set; }
         public required IEnumerable<AppointmentDTO> Appointments { get; set; }
     }
+    public class barchart
+    {
+        public DateTime DateTime { get; set; }
+        public int Count { get; set; }
+    }
 
     public class AdminResponseModel
     {
         public IEnumerable<AppointmentDTO> Appointments { get; set; }
-        public IEnumerable<Doctor> Doctors { get; set; }
-      
+        public IEnumerable<User> Doctors { get; set; }
+        public IEnumerable<User> Patients { get; set; }
+        public IEnumerable<barchart> data { get; set; }
 
     }
 }

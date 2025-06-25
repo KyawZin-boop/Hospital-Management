@@ -49,14 +49,8 @@ namespace Hospital_Management.Controllers
             }
             else
             {
-                var doctors = await _userService.GetAllDoctors();
-                var appointments = await _appointmentService.GetAppointmentsAsync(user.UserID, user.Role);
-                var model = new AdminResponseModel
-                {
-                    Doctors = doctors,
-                    Appointments = appointments
-                };
-                return View("Table", model);
+                var model = await _appointmentService.dashboard();
+                return RedirectToAction("Index", "Dashboard", model);
             }
         }
 
@@ -80,6 +74,6 @@ namespace Hospital_Management.Controllers
             };
 
             return View("User", model);
-        }
+        }    
     }
 }

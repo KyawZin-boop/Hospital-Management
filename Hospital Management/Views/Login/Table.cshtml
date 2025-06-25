@@ -1,139 +1,78 @@
-﻿@model Hospital_Management.Models.AdminResponseModel
-@using Newtonsoft.Json
-
-
+﻿@model IEnumerable<Hospital_Management.Models.AppointmentDTO>
 @{
-    ViewBag.Title = "Appointments Table";
-    Layout = "_Layout";
-    int index = 0;
-    int doctorIndex = 0;
-
-    // Get the last 7 days
-    var last7Days = Enumerable.Range(0, 7)
-        .Select(i => DateTime.Today.AddDays(-i))
-        .Reverse()
-        .ToList();
-
-    // Labels for chart
-    var labels = last7Days.Select(d => d.ToString("MMM dd")).ToArray();
-
-    // Count of appointments per day
-    var data = last7Days.Select(d =>
-        Model.Appointments.Count(a => a.AppointmentDate.Date == d.Date)
-    ).ToArray();
+    ViewBag.Title = "Doctor Dashboard";
+    var index = 0;
 }
 
-<div class="container pt-5">
-    <div class="row">
-        <!-- Tables Column -->
-        <div class="col-md-8">
-            <!-- Appointments Table -->
-            <div>
-                <h2 class="text-primary">Appointments</h2>
-                @if (Model.Appointments != null && Model.Appointments.Any())
-                {
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-success">
-                            <tr>
-                                <th>No.</th>
-                                <th>Patient</th>
-                                <th>Doctor</th>
-                                <th>Appointment Date</th>
-                                <th>Created At</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var appointment in Model.Appointments)
-                            {
-                                <tr>
-                                    <td>@(++index).</td>
-                                    <td>@appointment.patientName</td>
-                                    <td>@appointment.doctorName</td>
-                                    <td>@appointment.AppointmentDate.ToLocalTime()</td>
-                                    <td>@appointment.CreatedAt.ToLocalTime()</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <p>No appointments found.</p>
-                }
-            </div>
-
-            <!-- Doctors Table -->
-            <div class="mt-5">
-                <h2 class="text-primary">Doctors</h2>
-                @if (Model.Doctors != null && Model.Doctors.Any())
-                {
-                    <table class="table table-striped table-bordered">
-                        <thead class="table-success">
-                            <tr>
-                                <th>No.</th>
-                                <th>Doctor</th>
-                                <th>Email</th>
-                                <th>Join Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var doctor in Model.Doctors)
-                            {
-                                <tr>
-                                    <td>@(++doctorIndex).</td>
-                                    <td>@doctor.Name</td>
-                                    <td>@doctor.Email</td>
-                                    <td>@doctor.CreatedAt.ToLocalTime()</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <p>No doctors found.</p>
-                }
-            </div>
+<div class="container-xxl flex-grow-1 container-p-y">
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ViewBag.Error
         </div>
-
-        <!-- Chart Column -->
-        <div class="col-md-4">
-            <h3 class="text-primary">7-Day Appointment Stats</h3>
-            <canvas id="appointmentChart" height="300"></canvas>
+    }
+    <h4 class="fw-bold py-3 mb-4">Doctor Dashboard</h4>
+    <div class="row">
+        <!-- Appointments Table -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Your Appointments</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered datatable">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Patient</th>
+                                        <th>Appointment Date</th>
+                                        <th>Created At</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var appointment in Model)
+                                    {
+                                        <tr>
+                                            <td>@(++index).</td>
+                                            <td>@appointment.patientName</td>
+                                            <td>@appointment.AppointmentDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@appointment.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@(appointment.ActiveFlag ? "Active" : "Cancelled")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No appointments found.</p>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-@section scripts {
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@section Scripts {
+    <!-- DataTables CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/css/dataTables.bootstrap5.min.css" />
 
     <script>
-        const ctx = document.getElementById('appointmentChart').getContext('2d');
-        const labels = @Html.Raw(JsonConvert.SerializeObject(labels));
-        const data = @Html.Raw(JsonConvert.SerializeObject(data));
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Appointments in Last 7 Days',
-                    data: data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
+        $(document).ready(function () {
+            $('.datatable').DataTable({
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        precision: 0
-                    }
-                }
-            }
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                order: [[2, 'desc']] // Sort by Appointment Date descending
+            });
         });
     </script>
 }

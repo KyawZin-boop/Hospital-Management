@@ -48,7 +48,56 @@ namespace Hospital_Management.Services
 
             return result;
         }
+        public async Task<AdminResponseModel> dashboard()
+        {
+            DateTime today = DateTime.Today;
+            DateTime sevenDaysAgo = today.AddDays(-6); 
 
+            var appointmentsQuery = _context.Appointment
+                .Where(a => a.ActiveFlag && a.CreatedAt.Date >= sevenDaysAgo && a.CreatedAt.Date <= today);
+
+            var appointments = await (
+                from appt in appointmentsQuery
+                join patient in _context.User on appt.PatientID equals patient.UserID
+                join doctor in _context.User on appt.DoctorID equals doctor.UserID
+                select new AppointmentDTO
+                {
+                    AppointmentID = appt.AppointmentID,
+                    patientName = patient.Name,
+                    doctorName = doctor.Name,
+                    AppointmentDate = appt.AppointmentDate,
+                    CreatedAt = appt.CreatedAt,
+                    UpdatedAt = appt.UpdatedAt,
+                    ActiveFlag = appt.ActiveFlag
+                }
+            ).ToListAsync();
+
+            var doctors = await _context.User
+                .Where(u => u.Role == "Doctor" && u.ActiveFlag)
+                .ToListAsync();
+
+            var patients = await _context.User
+                .Where(u => u.Role == "Patient" && u.ActiveFlag)
+                .ToListAsync();
+
+            var barchartData = Enumerable.Range(0, 7)
+                .Select(i => today.AddDays(-i))
+                .OrderBy(date => date)
+                .Select(date => new barchart
+                {
+                    DateTime = date,
+                    Count = appointments.Count(a => a.CreatedAt.Date == date)
+                })
+                .ToList();
+
+            return new AdminResponseModel
+            {
+                Appointments = appointments,
+                Doctors = doctors,
+                Patients = patients,
+                data = barchartData
+            };
+        }
 
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
