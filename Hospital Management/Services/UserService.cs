@@ -44,5 +44,90 @@ namespace Hospital_Management.Services
                 .ToListAsync();
             return doctors;
         }
+
+        public async Task<bool> AddDoctorAsync(string name, string email,int age, string password)
+        {
+            try
+            {
+                var existingUser = await _context.User
+                    .FirstOrDefaultAsync(u => u.Email == email);
+
+                if (existingUser != null)
+                    return false; 
+
+                var doctor = new User
+                {
+                    UserID = Guid.NewGuid(),
+                    Name = name,
+                    Email = email,
+                    Password = password, 
+                    Role = "Doctor",
+                    Age = age,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    ActiveFlag = true
+                };
+
+                _context.User.Add(doctor);
+                _context.SaveChanges();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        // Update user
+        public async Task<bool> UpdateUserAsync(User user)
+        {
+            try
+            {
+                user.UpdatedAt = DateTime.UtcNow;
+                _context.User.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<IEnumerable<User>> GetDoctorsAsync()
+        {
+            return await _context.User
+                .Where(u => u.Role == "Doctor" && u.ActiveFlag)
+                .ToListAsync();
+        }
+
+        // Get all patients
+        public async Task<IEnumerable<User>> GetPatientsAsync()
+        {
+            return await _context.User
+                .Where(u => u.Role == "Patient" && u.ActiveFlag)
+                .ToListAsync();
+        }
+        // Delete user (soft delete)
+        public async Task<bool> DeleteUserAsync(Guid userId)
+        {
+            try
+            {
+                var user = await _context.User
+                    .FirstOrDefaultAsync(u => u.UserID == userId && u.ActiveFlag);
+
+                if (user == null)
+                    return false;
+
+                user.ActiveFlag = false;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                _context.User.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

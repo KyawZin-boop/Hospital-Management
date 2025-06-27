@@ -48,10 +48,11 @@ namespace Hospital_Management.Services
 
             return result;
         }
+
         public async Task<AdminResponseModel> Dashboard()
         {
             DateTime today = DateTime.Today;
-            DateTime sevenDaysAgo = today.AddDays(-6); 
+            DateTime sevenDaysAgo = today.AddDays(-6);
 
             var appointmentsQuery = _context.Appointment
                 .Where(a => a.ActiveFlag && a.CreatedAt.Date >= sevenDaysAgo && a.CreatedAt.Date <= today);
@@ -106,6 +107,63 @@ namespace Hospital_Management.Services
             _context.Appointment.Add(appointment);
             await _context.SaveChangesAsync();
             return appointment;
+        }
+
+        // Get appointment by ID
+        public async Task<Appointment> GetAppointmentByIdAsync(Guid appointmentId)
+        {
+            return await _context.Appointment
+                .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.ActiveFlag);
+        }
+
+        // Update appointment
+        public async Task<bool> UpdateAppointmentAsync(Guid appointmentId, Guid patientId, Guid doctorId, DateTime appointmentDate)
+        {
+            try
+            {
+                var appointment = await _context.Appointment
+                    .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.ActiveFlag);
+
+                if (appointment == null)
+                    return false;
+
+                appointment.PatientID = patientId;
+                appointment.DoctorID = doctorId;
+                appointment.AppointmentDate = appointmentDate;
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                _context.Appointment.Update(appointment);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Delete appointment (soft delete)
+        public async Task<bool> DeleteAppointmentAsync(Guid appointmentId)
+        {
+            try
+            {
+                var appointment = await _context.Appointment
+                    .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.ActiveFlag);
+
+                if (appointment == null)
+                    return false;
+
+                appointment.ActiveFlag = false;
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                _context.Appointment.Update(appointment);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

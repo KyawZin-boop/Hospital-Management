@@ -58,7 +58,6 @@ namespace Hospital_Management.Controllers
             catch (Exception ex)
             {
                 ViewBag.Error = "An error occurred while loading patient data.";
-                // Log the exception if logging is configured
                 return View("Dashboard", new AdminResponseModel());
             }
         }
@@ -81,7 +80,6 @@ namespace Hospital_Management.Controllers
             catch (Exception ex)
             {
                 ViewBag.Error = "An error occurred while loading doctor data.";
-                // Log the exception if logging is configured
                 return View("Dashboard", new AdminResponseModel());
             }
         }
@@ -104,9 +102,124 @@ namespace Hospital_Management.Controllers
             catch (Exception ex)
             {
                 ViewBag.Error = "An error occurred while loading appointment data.";
-                // Log the exception if logging is configured
                 return View("Dashboard", new AdminResponseModel());
             }
         }
+
+        // Get appointment for editing
+        [HttpGet]
+        public async Task<IActionResult> GetAppointment(Guid id)
+        {
+            try
+            {
+                var appointment = await _appointmentService.GetAppointmentByIdAsync(id);
+                if (appointment == null)
+                {
+                    return Json(new { success = false, message = "Appointment not found." });
+                }
+
+                var doctors = await _userService.GetDoctorsAsync();
+                var patients = await _userService.GetPatientsAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    appointment = new
+                    {
+                        appointmentID = appointment.AppointmentID,
+                        patientID = appointment.PatientID,
+                        doctorID = appointment.DoctorID,
+                        appointmentDate = appointment.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")
+                    },
+                    doctors = doctors.Select(d => new { value = d.UserID, text = d.Name }),
+                    patients = patients.Select(p => new { value = p.UserID, text = p.Name })
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error retrieving appointment data." });
+            }
+        }
+
+        // Update appointment
+        [HttpPost]
+        public async Task<IActionResult> UpdateAppointment([FromBody] UpdateAppointmentRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return Json(new { success = false, message = "Invalid data provided." });
+                }
+
+                var result = await _appointmentService.UpdateAppointmentAsync(request.AppointmentID, request.PatientID, request.DoctorID, request.AppointmentDate);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "Appointment updated successfully." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to update appointment." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while updating the appointment." });
+            }
+        }
+
+        // Delete appointment
+        [HttpPost]
+        public async Task<IActionResult> DeleteAppointment(Guid id)
+        {
+            try
+            {
+                var result = await _appointmentService.DeleteAppointmentAsync(id);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "Appointment deleted successfully." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to delete appointment." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while deleting the appointment." });
+            }
+        }
+
+        // Add new doctor
+        [HttpPost]
+        public async Task<IActionResult> AddDoctor([FromBody] AddDoctorRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return Json(new { success = false, message = "Invalid data provided." });
+                }
+
+                var result = await _userService.AddDoctorAsync(request.Name, request.Email,request.Age, request.Password);
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "Doctor added successfully." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to add doctor." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while adding the doctor." });
+            }
+        }
     }
+
+
 }

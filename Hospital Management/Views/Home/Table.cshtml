@@ -13,7 +13,6 @@
     }
     <h4 class="fw-bold py-3 mb-4">Doctor Dashboard</h4>
     <div class="row">
-        <!-- Appointments Table -->
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
@@ -59,7 +58,6 @@
 </div>
 
 @section Scripts {
-    <!-- DataTables CDNs -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/js/dataTables.bootstrap5.min.js"></script>
@@ -71,7 +69,7 @@
                 responsive: true,
                 pageLength: 10,
                 lengthMenu: [5, 10, 25, 50],
-                order: [[2, 'desc']] // Sort by Appointment Date descending
+                order: [[2, 'desc']] 
             });
         });
     </script>

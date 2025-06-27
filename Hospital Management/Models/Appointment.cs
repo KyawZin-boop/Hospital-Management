@@ -24,4 +24,20 @@ namespace Hospital_Management.Models
         public bool ActiveFlag { get; set; } = true;
 
     }
+    // Request models for the new endpoints
+    public class UpdateAppointmentRequest
+    {
+        public Guid AppointmentID { get; set; }
+        public Guid PatientID { get; set; }
+        public Guid DoctorID { get; set; }
+        public DateTime AppointmentDate { get; set; }
+    }
+
+    public class AddDoctorRequest
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public int Age { get; set; }
+        public string Password { get; set; }
+    }
 }
