@@ -1,9 +1,14 @@
 ﻿using Hospital_Management.Models;
 using Hospital_Management.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Hospital_Management.Controllers
 {
+    [AllowAnonymous]
     public class LoginController : Controller
     {
         private readonly LoginService _loginService;
@@ -20,6 +25,18 @@ namespace Hospital_Management.Controllers
         [HttpGet]
         public IActionResult Index()
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                return role switch
+                {
+                    "Patient" => RedirectToAction("Index", "Home"),
+                    "Doctor" => RedirectToAction("Table", "Home"),
+                    "Admin" => RedirectToAction("Index", "Dashboard"),
+                    _ => RedirectToAction("Index", "Home")
+                };
+            }
+
             return View();
         }
 
@@ -36,44 +53,23 @@ namespace Hospital_Management.Controllers
 
             var user = response.Data as User;
 
-            ViewData["Name"] = user.Name;
-
-            if (user.Role == "Patient")
+            var claims = new List<Claim>
             {
-                return await PatientDashboard(user.UserID);
-            }
-            else if(user.Role == "Doctor")
-            {
-                var appointments = await _appointmentService.GetAppointmentsAsync(user.UserID, user.Role);
-                return View("Table", appointments);
-            }
-            else
-            {
-                var model = await _appointmentService.dashboard();
-                return RedirectToAction("Index", "Dashboard", model);
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> PatientDashboard(Guid patientId)
-        {
-            var user = await _userService.GetUserByIdAsync(patientId);
-            if (user == null || user.Role != "Patient")
-            {
-                return NotFound("Patient not found.");
-            }
-
-            var doctorResponse = await _userService.GetAllDoctors();
-            var appointments = await _appointmentService.GetAppointmentsAsync(user.UserID, user.Role);
-
-            var model = new PatientDashboardViewModel
-            {
-                User = user,
-                Doctors = doctorResponse ?? new List<Doctor>(),
-                Appointments = appointments ?? new List<AppointmentDTO>()
+                new Claim(ClaimTypes.NameIdentifier, user!.UserID.ToString()),
+                new Claim(ClaimTypes.Name, user.Name!),
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim(ClaimTypes.Role, user.Role!)
             };
 
-            return View("User", model);
-        }    
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            // Sign in the user
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        
     }
 }

@@ -20,16 +20,15 @@
                 <div class="d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <div class="nav-link text-dark">@ViewData["Name"]</div>
+                            <div class="nav-link text-dark">
+                                @User.FindFirstValue(ClaimTypes.Name)
+                            </div>
                         </li>
-                        @if (ViewData["Name"] != null)
-                        {
-                            <li class="nav-item">
-                                <a href="/logout">
-                                    <span class="btn btn-danger rounded">LogOut</span>
-                                </a>
-                            </li>
-                        }
+                        <li class="nav-item">
+                            <a href="/logout">
+                                <span class="btn btn-danger rounded">LogOut</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

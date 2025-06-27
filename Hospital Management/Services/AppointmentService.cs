@@ -48,7 +48,7 @@ namespace Hospital_Management.Services
 
             return result;
         }
-        public async Task<AdminResponseModel> dashboard()
+        public async Task<AdminResponseModel> Dashboard()
         {
             DateTime today = DateTime.Today;
             DateTime sevenDaysAgo = today.AddDays(-6); 

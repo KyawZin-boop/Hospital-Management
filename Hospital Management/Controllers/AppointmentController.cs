@@ -1,9 +1,11 @@
 ﻿using Hospital_Management.Models;
 using Hospital_Management.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hospital_Management.Controllers
 {
+    [Authorize]
     public class AppointmentController : Controller
     {
         private readonly AppointmentService _appointmentService;

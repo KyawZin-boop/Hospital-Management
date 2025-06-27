@@ -1,11 +1,13 @@
 ﻿using Hospital_Management.Models;
 using Hospital_Management.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 
 namespace Hospital_Management.Controllers
 {
+    [Authorize]
     public class DashboardController : Controller
     {
         private readonly AppointmentService _appointmentService;
@@ -22,7 +24,7 @@ namespace Hospital_Management.Controllers
         {
             try
             {
-                var model = await _appointmentService.dashboard();
+                var model = await _appointmentService.Dashboard();
                 if (model == null)
                 {
                     ViewBag.Error = "Unable to load dashboard data.";
@@ -44,7 +46,7 @@ namespace Hospital_Management.Controllers
         {
             try
             {
-                var model = await _appointmentService.dashboard();
+                var model = await _appointmentService.Dashboard();
                 if (model == null)
                 {
                     ViewBag.Error = "Unable to load patient data.";
@@ -67,7 +69,7 @@ namespace Hospital_Management.Controllers
         {
             try
             {
-                var model = await _appointmentService.dashboard();
+                var model = await _appointmentService.Dashboard();
                 if (model == null)
                 {
                     ViewBag.Error = "Unable to load doctor data.";
@@ -90,7 +92,7 @@ namespace Hospital_Management.Controllers
         {
             try
             {
-                var model = await _appointmentService.dashboard();
+                var model = await _appointmentService.Dashboard();
                 if (model == null)
                 {
                     ViewBag.Error = "Unable to load appointment data.";
