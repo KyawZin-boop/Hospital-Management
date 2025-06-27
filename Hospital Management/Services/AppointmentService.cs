@@ -84,7 +84,7 @@ namespace Hospital_Management.Services
             var barchartData = Enumerable.Range(0, 7)
                 .Select(i => today.AddDays(-i))
                 .OrderBy(date => date)
-                .Select(date => new barchart
+                .Select(date => new Barchart
                 {
                     DateTime = date,
                     Count = appointments.Count(a => a.CreatedAt.Date == date)
@@ -110,7 +110,7 @@ namespace Hospital_Management.Services
         }
 
         // Get appointment by ID
-        public async Task<Appointment> GetAppointmentByIdAsync(Guid appointmentId)
+        public async Task<Appointment?> GetAppointmentByIdAsync(Guid appointmentId)
         {
             return await _context.Appointment
                 .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.ActiveFlag);

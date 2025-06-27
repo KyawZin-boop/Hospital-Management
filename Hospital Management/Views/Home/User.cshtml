@@ -58,8 +58,8 @@
                                 <td>@(++index)</td>
                                 <td>@appointment.doctorName</td>
                                 <td>@appointment.patientName</td>
-                                <td>@appointment.AppointmentDate.ToLocalTime()</td>
-                                <td>@appointment.CreatedAt.ToLocalTime()</td>
+                                <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd h:mm tt")</td>
+                                <td>@appointment.CreatedAt.ToString("yyyy-MM-dd h:mm tt")</td>
                             </tr>
                         }
                     </tbody>

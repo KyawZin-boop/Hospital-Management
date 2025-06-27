@@ -18,7 +18,7 @@ namespace Hospital_Management.Services
             await _context.SaveChangesAsync();
             return user;
         }
-        public async Task<User> GetUserByIdAsync(Guid userId)
+        public async Task<User?> GetUserByIdAsync(Guid userId)
         {
             return await _context.User.FindAsync(userId);
         }
@@ -26,7 +26,7 @@ namespace Hospital_Management.Services
         {
             return await _context.User.ToListAsync();
         }
-        public async Task<User> GetUserByRole(string role)
+        public async Task<User?> GetUserByRole(string role)
         {
             return await _context.User.FirstOrDefaultAsync(u => u.Role == role && u.ActiveFlag);
         }
@@ -77,7 +77,7 @@ namespace Hospital_Management.Services
                 return false;
             }
         }
-        // Update user
+
         public async Task<bool> UpdateUserAsync(User user)
         {
             try
@@ -99,20 +99,18 @@ namespace Hospital_Management.Services
                 .ToListAsync();
         }
 
-        // Get all patients
         public async Task<IEnumerable<User>> GetPatientsAsync()
         {
             return await _context.User
                 .Where(u => u.Role == "Patient" && u.ActiveFlag)
                 .ToListAsync();
-        }
-        // Delete user (soft delete)
+        } 
+
         public async Task<bool> DeleteUserAsync(Guid userId)
         {
             try
             {
-                var user = await _context.User
-                    .FirstOrDefaultAsync(u => u.UserID == userId && u.ActiveFlag);
+                var user = await _context.User.FirstOrDefaultAsync(u => u.UserID == userId && u.ActiveFlag);
 
                 if (user == null)
                     return false;
@@ -121,6 +119,38 @@ namespace Hospital_Management.Services
                 user.UpdatedAt = DateTime.UtcNow;
 
                 _context.User.Update(user);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.User
+                .FirstOrDefaultAsync(u => u.Email == email && u.ActiveFlag);
+        }
+
+        public async Task<bool> RegisterUserAsync(RegisterDTO dto)
+        {
+            try
+            {
+                var user = new User
+                {
+                    UserID = Guid.NewGuid(),
+                    Name = dto.Name,
+                    Email = dto.Email,
+                    Password = dto.Password, // Ensure password is hashed in production
+                    Role = "Patient",
+                    Age = dto.Age,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    ActiveFlag = true
+                };
+                _context.User.Add(user);
                 await _context.SaveChangesAsync();
                 return true;
             }

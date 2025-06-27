@@ -21,6 +21,15 @@ namespace Hospital_Management.Models
         public required string Email { get; set; }
         public required string Password { get; set; }
     }
+
+    public class RegisterDTO
+    {
+        public required string Name { get; set; }
+        public required int Age { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+
+    }
     public class Response
     {
         public string Message { get; set; }
@@ -30,8 +39,8 @@ namespace Hospital_Management.Models
     public class Doctor
     {
         public Guid DoctorID { get; set; }
-        public string? Name { get; set; }
-        public string Email { get; set; }
+        public required string Name { get; set; }
+        public required string Email { get; set; }
         public DateTime CreatedAt { get; set; }
 
     }
@@ -39,7 +48,7 @@ namespace Hospital_Management.Models
     {
         public string Message { get; set; }
         public bool Success { get; set; }
-        public List<object> Data { get; set; }
+        public List<object>? Data { get; set; }
     }
     public class PatientDashboardViewModel
     {
@@ -47,7 +56,7 @@ namespace Hospital_Management.Models
         public required IEnumerable<Doctor> Doctors { get; set; }
         public required IEnumerable<AppointmentDTO> Appointments { get; set; }
     }
-    public class barchart
+    public class Barchart
     {
         public DateTime DateTime { get; set; }
         public int Count { get; set; }
@@ -58,7 +67,7 @@ namespace Hospital_Management.Models
         public IEnumerable<AppointmentDTO> Appointments { get; set; }
         public IEnumerable<User> Doctors { get; set; }
         public IEnumerable<User> Patients { get; set; }
-        public IEnumerable<barchart> data { get; set; }
+        public IEnumerable<Barchart> data { get; set; }
 
     }
 }

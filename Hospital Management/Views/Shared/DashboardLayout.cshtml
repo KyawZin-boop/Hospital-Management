@@ -124,10 +124,10 @@
 
 	<header class="header">
 		<div class="d-flex justify-content-between align-items-center px-8 py-9">
-			<div class=" text-white mx-9 ">
+			<div class=" text-white mx-3 ">
 				@User.FindFirstValue(ClaimTypes.Name)
 			</div>
-			<div class="ml-8">
+			<div class="ml-3">
 				<a href="/logout">
 					<span class="btn btn-danger rounded">LogOut</span>
 				</a>
@@ -135,7 +135,7 @@
 		</div>
 	</header>
 
-	<div class="content">
+	<div class="content" style="background-color: #f8f8ff">
 		<div class="main-content">
 			@RenderBody()
 		</div>

@@ -37,6 +37,11 @@ namespace Hospital_Management.Controllers
                 };
             }
 
+            if (TempData["Success"] != null)
+            {
+                ViewBag.Success = TempData["Success"];
+            }
+
             return View();
         }
 

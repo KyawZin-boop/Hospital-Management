@@ -18,7 +18,7 @@
         : new int[7];
 }
 
-<div class="container-xxl flex-grow-1 container-p-y">
+<div class="container-xxl flex-grow-1 container-p-y" style="background-color: #F8F8ff">
     @if (!string.IsNullOrEmpty(ViewBag.Error))
     {
         <div class="alert alert-danger" role="alert">
@@ -218,8 +218,8 @@
                                                     <td>@(++index).</td>
                                                     <td>@appointment.patientName</td>
                                                     <td>@appointment.doctorName</td>
-                                                    <td>@appointment.AppointmentDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                                                    <td>@appointment.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                                    <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd h:mm tt")</td>
+                                                    <td>@appointment.CreatedAt.ToString("yyyy-MM-dd h:mm tt")</td>
                                                     <td>
                                                         <button type="button" class="btn btn-sm w-100 btn-warning me-2 mb-2" onclick="editAppointment('@appointment.AppointmentID')">
                                                             <i class="bi bi-pencil"></i> Edit
