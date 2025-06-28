@@ -39,6 +39,13 @@ public class HomeController : Controller
         }
     }
 
+    [AllowAnonymous]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+
     public IActionResult Privacy()
     {
         return View();

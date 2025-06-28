@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Hospital_Management.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class DashboardController : Controller
     {
         private readonly AppointmentService _appointmentService;
