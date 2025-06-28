@@ -61,13 +61,21 @@ namespace Hospital_Management.Models
         public DateTime DateTime { get; set; }
         public int Count { get; set; }
     }
+    public class Linechart
+    {
+        public DateTime DateTime { get; set; }
+        public int redCount { get; set; }
+        public int blueCount { get; set; }
+        public int greenCount { get; set; }
 
+    }
     public class AdminResponseModel
     {
         public IEnumerable<AppointmentDTO> Appointments { get; set; }
         public IEnumerable<User> Doctors { get; set; }
         public IEnumerable<User> Patients { get; set; }
         public IEnumerable<Barchart> data { get; set; }
+        public IEnumerable<Linechart> data1 { get; set; }
 
     }
 }

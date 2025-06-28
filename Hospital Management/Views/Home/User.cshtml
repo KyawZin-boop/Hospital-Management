@@ -1,5 +1,4 @@
 ﻿@model Hospital_Management.Models.PatientDashboardViewModel
-
 @{
     ViewBag.Title = "Patient Dashboard";
     Layout = "_Layout";
@@ -13,7 +12,7 @@
         <!-- Appointment Form -->
         <div class="col-md-6">
             <h4>Create Appointment</h4>
-            <form method="post" action="/Appointment/Create">
+            <form id="create-appointment-form">
                 <input type="hidden" name="PatientID" value="@Model.User.UserID" />
 
                 <div class="mb-3">
@@ -39,36 +38,135 @@
         <!-- Appointment History -->
         <div class="col-md-6">
             <h4>Appointment History</h4>
-            @if (Model.Appointments.Any())
-            {
-                <table class="table table-bordered mt-3">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Doctor</th>
-                            <th>Patient</th>
-                            <th>Appointment Date</th>
-                            <th>Created At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var appointment in Model.Appointments)
-                        {
+            <div id="appointment-history">
+                @if (Model.Appointments.Any())
+                {
+                    <table class="table table-striped table-bordered table-hover datatable" id="appointment-table">
+                        <thead class="table-success">
                             <tr>
-                                <td>@(++index)</td>
-                                <td>@appointment.doctorName</td>
-                                <td>@appointment.patientName</td>
-                                <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd h:mm tt")</td>
-                                <td>@appointment.CreatedAt.ToString("yyyy-MM-dd h:mm tt")</td>
+                                <th>No.</th>
+                                <th>Doctor</th>
+                                <th>Patient</th>
+                                <th>Appointment Date</th>
+                                <th>Created At</th>
+                                <th>Status</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p>No appointments found.</p>
-            }
+                        </thead>
+                        <tbody>
+                            @foreach (var appointment in Model.Appointments)
+                            {
+                                <tr class="@(appointment.status == "accepted" ? "table-success" : appointment.status == "rejected" ? "table-danger" : appointment.status == "completed" ? "table-info" : "")">
+                                    <td>@(++index)</td>
+                                    <td>@appointment.doctorName</td>
+                                    <td>@appointment.patientName</td>
+                                    <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd h:mm tt")</td>
+                                    <td>@appointment.CreatedAt.ToString("yyyy-MM-dd h:mm tt")</td>
+                                    <td>@Capitalize(appointment.status)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No appointments found.</p>
+                }
+            </div>
         </div>
     </div>
 </div>
+
+@functions {
+    public string Capitalize(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            var table = $('#appointment-table').DataTable({
+                responsive: true,
+                pageLength: 5,
+                lengthMenu: [5,10, 25, 50],
+                paging: true,
+                searching: false,
+                ordering: true,
+                order: [[3, 'desc']], // Sort by Appointment Date (column 3) descending
+                columnDefs: [{
+                    searchable: false,
+                    orderable: false,
+                    targets: 0 // Disable sorting on "No." column
+                }],
+                language: {
+                    paginate: {
+                        previous: "Previous",
+                        next: "Next"
+                    }
+                }
+            });
+
+            // Update "No." column on sort or page change
+            table.on('order.dt search.dt draw.dt', function () {
+                table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1;
+                });
+            }).draw();
+
+            $('#create-appointment-form').on('submit', function (e) {
+                e.preventDefault(); // Prevent default form submission
+
+                var formData = {
+                    PatientID: $('input[name="PatientID"]').val(),
+                    DoctorID: $('select[name="DoctorID"]').val(),
+                    AppointmentDate: $('input[name="AppointmentDate"]').val()
+                };
+
+                $.ajax({
+                    url: '/api/appointments/create',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Appointment booked successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Redirect to PatientDashboard route
+                            window.location.href = '/Home/PatientDashboard?patientId=@Model.User.UserID';
+                        });
+                    },
+                    error: function (xhr) {
+                        var errorMessage = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : 'An error occurred while booking the appointment.';
+                        Swal.fire({
+                            title: 'Error!',
+                            text: errorMessage,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken()" />

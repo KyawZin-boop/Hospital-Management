@@ -17,6 +17,14 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">Your Appointments</h5>
                 </div>
+                @functions {
+                    public string Capitalize(string input)
+                    {
+                        if (string.IsNullOrEmpty(input))
+                            return input;
+                        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+                    }
+                }
                 <div class="card-body">
                     @if (Model != null && Model.Any())
                     {
@@ -29,6 +37,7 @@
                                         <th>Appointment Date</th>
                                         <th>Created At</th>
                                         <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -39,7 +48,22 @@
                                             <td>@appointment.patientName</td>
                                             <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd h:mm tt")</td>
                                             <td>@appointment.CreatedAt.ToString("yyyy-MM-dd h:mm tt")</td>
-                                            <td>@(appointment.ActiveFlag ? "Active" : "Cancelled")</td>
+                                            <td>@Capitalize(appointment.status)</td>
+                                            <td>
+                                                @if (appointment.status == "pending")
+                                                {
+                                                    <button class="btn btn-sm btn-success accept-btn" data-id="@appointment.AppointmentID">Accept</button>
+                                                    <button class="btn btn-sm btn-danger reject-btn" data-id="@appointment.AppointmentID">Reject</button>
+                                                }
+                                                else if (appointment.status == "accepted")
+                                                {
+                                                    <button class="btn btn-sm btn-primary complete-btn" data-id="@appointment.AppointmentID">Complete</button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No actions available</span>
+                                                }
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
@@ -60,7 +84,9 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
     <script>
         $(document).ready(function () {
@@ -82,6 +108,102 @@
                     cell.innerHTML = i + 1;
                 });
             }).draw();
+
+            // Handle Accept button click
+            $('.accept-btn').on('click', function () {
+                var appointmentId = $(this).data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "Do you want to accept this appointment?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, accept it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        updateAppointmentStatus(appointmentId, 'accept');
+                    }
+                });
+            });
+
+            // Handle Reject button click
+            $('.reject-btn').on('click', function () {
+                var appointmentId = $(this).data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "Do you want to reject this appointment?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, reject it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        updateAppointmentStatus(appointmentId, 'reject');
+                    }
+                });
+            });
+
+            // Handle Complete button click
+            $('.complete-btn').on('click', function () {
+                var appointmentId = $(this).data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "Do you want to mark this appointment as completed?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#007bff',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, complete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        updateAppointmentStatus(appointmentId, 'complete');
+                    }
+                });
+            });
+
+            // Function to update appointment status via AJAX
+            function updateAppointmentStatus(appointmentId, status) {
+                $.ajax({
+                    url: '/api/appointments/update-status',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    data: JSON.stringify({ appointmentId: appointmentId, status: status }),
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: `Appointment ${status}d successfully.`,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.message || 'Failed to update appointment status.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while updating the appointment status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            }
         });
     </script>
 }
+
+<input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken()" />

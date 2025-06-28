@@ -37,9 +37,10 @@ namespace Hospital_Management.Services
                 select new AppointmentDTO
                 {
                     AppointmentID = appt.AppointmentID,
-                    patientName = patient.Name,
-                    doctorName = doctor.Name,
+                    patientName = patient.Name ?? "Unknown", // Handle NULL Name
+                    doctorName = doctor.Name ?? "Unknown",  // Handle NULL Name
                     AppointmentDate = appt.AppointmentDate,
+                    status = appt.status,
                     CreatedAt = appt.CreatedAt,
                     UpdatedAt = appt.UpdatedAt,
                     ActiveFlag = appt.ActiveFlag
@@ -64,9 +65,10 @@ namespace Hospital_Management.Services
                 select new AppointmentDTO
                 {
                     AppointmentID = appt.AppointmentID,
-                    patientName = patient.Name,
-                    doctorName = doctor.Name,
+                    patientName = patient.Name ?? "Unknown",
+                    doctorName = doctor.Name ?? "Unknown",
                     AppointmentDate = appt.AppointmentDate,
+                    status = appt.status,
                     CreatedAt = appt.CreatedAt,
                     UpdatedAt = appt.UpdatedAt,
                     ActiveFlag = appt.ActiveFlag
@@ -91,33 +93,44 @@ namespace Hospital_Management.Services
                 })
                 .ToList();
 
+            var linechartData = Enumerable.Range(0, 7)
+                .Select(i => today.AddDays(-i))
+                .OrderBy(date => date)
+                .Select(date => new Linechart
+                {
+                    DateTime = date,
+                    redCount = appointments.Count(a => a.CreatedAt.Date == date && a.status.ToLower() == "rejected"),
+                    blueCount = appointments.Count(a => a.CreatedAt.Date == date && a.status.ToLower() == "completed"),
+                    greenCount = appointments.Count(a => a.CreatedAt.Date == date && a.status.ToLower() == "accepted")
+                })
+                .ToList();
+
             return new AdminResponseModel
             {
                 Appointments = appointments,
                 Doctors = doctors,
                 Patients = patients,
-                data = barchartData
+                data = barchartData,
+                data1 = linechartData
             };
         }
-
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
             appointment.AppointmentID = Guid.NewGuid();
+            appointment.status = "pending";
             appointment.CreatedAt = DateTime.UtcNow;
             _context.Appointment.Add(appointment);
             await _context.SaveChangesAsync();
             return appointment;
         }
 
-        // Get appointment by ID
         public async Task<Appointment?> GetAppointmentByIdAsync(Guid appointmentId)
         {
             return await _context.Appointment
                 .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.ActiveFlag);
         }
 
-        // Update appointment
-        public async Task<bool> UpdateAppointmentAsync(Guid appointmentId, Guid patientId, Guid doctorId, DateTime appointmentDate)
+        public async Task<bool> UpdateAppointmentAsync(Guid appointmentId, Guid patientId, Guid doctorId, DateTime appointmentDate , string status)
         {
             try
             {
@@ -131,6 +144,7 @@ namespace Hospital_Management.Services
                 appointment.DoctorID = doctorId;
                 appointment.AppointmentDate = appointmentDate;
                 appointment.UpdatedAt = DateTime.UtcNow;
+                appointment.status = status;
 
                 _context.Appointment.Update(appointment);
                 await _context.SaveChangesAsync();
@@ -142,7 +156,6 @@ namespace Hospital_Management.Services
             }
         }
 
-        // Delete appointment (soft delete)
         public async Task<bool> DeleteAppointmentAsync(Guid appointmentId)
         {
             try
@@ -165,5 +178,28 @@ namespace Hospital_Management.Services
                 return false;
             }
         }
+        public async Task<bool> UpdateAppointmentStatusAsync(Guid appointmentId, string status)
+        {
+            try
+            {
+                var appointment = await _context.Appointment
+                    .FirstOrDefaultAsync(a => a.AppointmentID == appointmentId && a.ActiveFlag);
+
+                if (appointment == null)
+                    return false;
+                appointment.status = status;
+                appointment.UpdatedAt = DateTime.UtcNow;
+
+                _context.Appointment.Update(appointment);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
+
 }

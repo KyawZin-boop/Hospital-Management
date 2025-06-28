@@ -143,7 +143,7 @@ namespace Hospital_Management.Services
                     UserID = Guid.NewGuid(),
                     Name = dto.Name,
                     Email = dto.Email,
-                    Password = dto.Password, // Ensure password is hashed in production
+                    Password = dto.Password, 
                     Role = "Patient",
                     Age = dto.Age,
                     CreatedAt = DateTime.UtcNow,

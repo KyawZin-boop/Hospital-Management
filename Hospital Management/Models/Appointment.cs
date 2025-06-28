@@ -11,6 +11,7 @@ namespace Hospital_Management.Models
         public DateTime AppointmentDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string status { get; set; } = "pending"; // pending, accept,reject, complete
         public bool ActiveFlag { get; set; } = true;
     }
     public class AppointmentDTO
@@ -21,6 +22,7 @@ namespace Hospital_Management.Models
         public DateTime AppointmentDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string status { get; set; } ="pending"; // pending, accept, reject, complete
         public bool ActiveFlag { get; set; } = true;
 
     }
@@ -31,6 +33,7 @@ namespace Hospital_Management.Models
         public Guid PatientID { get; set; }
         public Guid DoctorID { get; set; }
         public DateTime AppointmentDate { get; set; }
+        public required string status { get; set; }
     }
 
     public class AddDoctorRequest
@@ -39,5 +42,11 @@ namespace Hospital_Management.Models
         public string Email { get; set; }
         public int Age { get; set; }
         public string Password { get; set; }
+    }
+  
+    public class UpdateAppointmentStatusRequest
+    {
+        public Guid AppointmentId { get; set; }
+        public string Status { get; set; }
     }
 }

@@ -152,7 +152,7 @@ namespace Hospital_Management.Controllers
                     return Json(new { success = false, message = "Invalid data provided." });
                 }
 
-                var result = await _appointmentService.UpdateAppointmentAsync(request.AppointmentID, request.PatientID, request.DoctorID, request.AppointmentDate);
+                var result = await _appointmentService.UpdateAppointmentAsync(request.AppointmentID, request.PatientID, request.DoctorID, request.AppointmentDate, request.status);
 
                 if (result)
                 {

@@ -13,9 +13,6 @@
         .ToList();
 
     string[] labels = last7Days.Select(d => d.ToString("MMM dd")).ToArray();
-    int[] data = Model?.Appointments != null
-        ? last7Days.Select(d => Model.Appointments.Count(a => a.AppointmentDate.Date == d.Date)).ToArray()
-        : new int[7];
 }
 
 <div class="container-xxl flex-grow-1 container-p-y" style="background-color: #F8F8ff">
@@ -65,7 +62,6 @@
                 </div>
             </div>
 
-            <!-- Patient Count Card -->
             <div class="col-md-4">
                 <div class="card mb-4">
                     <div class="card-body">
@@ -84,25 +80,33 @@
                 </div>
             </div>
 
-            <!-- Line Chart for 7-Day Appointment Stats -->
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">7-Day Appointment Trends</h5>
+                        <h5 class="card-title mb-0">7-Day Appointment Stats</h5>
                     </div>
                     <div class="card-body">
-                        <canvas id="appointmentChart" height="300"></canvas>
+                        <canvas id="barChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">7-Day Appointment Status Trends</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="lineChart" height="300"></canvas>
                     </div>
                 </div>
             </div>
         }
         else
         {
-            <!-- Tables Column -->
             <div class="col-md-8">
                 @if (ViewBag.ActiveTab == "Patient")
                 {
-                    <!-- Patients Table -->
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">Patients</h5>
@@ -128,7 +132,7 @@
                                                     <td>@(++patientIndex).</td>
                                                     <td>@patient.Name</td>
                                                     <td>@patient.Email</td>
-													<td>@patient.Age</td>
+                                                    <td>@patient.Age</td>
                                                     <td>@patient.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                                                 </tr>
                                             }
@@ -145,7 +149,6 @@
                 }
                 else if (ViewBag.ActiveTab == "Doctor")
                 {
-                    <!-- Doctors Table -->
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">Doctors</h5>
@@ -163,7 +166,7 @@
                                                 <th>No.</th>
                                                 <th>Doctor</th>
                                                 <th>Email</th>
-												<th>Age</th>
+                                                <th>Age</th>
                                                 <th>Join Date</th>
                                             </tr>
                                         </thead>
@@ -191,7 +194,6 @@
                 }
                 else if (ViewBag.ActiveTab == "Appointment")
                 {
-                    <!-- Appointments Table -->
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">Appointments</h5>
@@ -208,6 +210,7 @@
                                                 <th>Doctor</th>
                                                 <th>Appointment Date</th>
                                                 <th>Created At</th>
+                                                <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
@@ -220,6 +223,7 @@
                                                     <td>@appointment.doctorName</td>
                                                     <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd h:mm tt")</td>
                                                     <td>@appointment.CreatedAt.ToString("yyyy-MM-dd h:mm tt")</td>
+                                                    <td>@Capitalize(appointment.status)</td>
                                                     <td>
                                                         <button type="button" class="btn btn-sm w-100 btn-warning me-2 mb-2" onclick="editAppointment('@appointment.AppointmentID')">
                                                             <i class="bi bi-pencil"></i> Edit
@@ -243,14 +247,13 @@
                 }
             </div>
 
-            <!-- Bar Chart for 7-Day Appointment Stats -->
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">7-Day Appointment Stats</h5>
                     </div>
                     <div class="card-body">
-                        <canvas id="appointmentChart" height="300"></canvas>
+                        <canvas id="barChart" height="300"></canvas>
                     </div>
                 </div>
             </div>
@@ -258,7 +261,6 @@
     </div>
 </div>
 
-<!-- Edit Appointment Modal -->
 <div class="modal fade" id="editAppointmentModal" tabindex="-1" aria-labelledby="editAppointmentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -285,6 +287,25 @@
                         <label for="editAppointmentDate" class="form-label">Appointment Date</label>
                         <input type="datetime-local" class="form-control" id="editAppointmentDate" required>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="editStatus" id="statusPending" value="pending" required>
+                            <label class="form-check-label" for="statusPending">Pending</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="editStatus" id="statusAccepted" value="accepted">
+                            <label class="form-check-label" for="statusAccepted">Accepted</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="editStatus" id="statusRejected" value="rejected">
+                            <label class="form-check-label" for="statusRejected">Rejected</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="editStatus" id="statusCompleted" value="completed">
+                            <label class="form-check-label" for="statusCompleted">Completed</label>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -295,7 +316,6 @@
     </div>
 </div>
 
-<!-- Add Doctor Modal -->
 <div class="modal fade" id="addDoctorModal" tabindex="-1" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -331,8 +351,16 @@
     </div>
 </div>
 
+@functions {
+    public string Capitalize(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+    }
+}
+
 @section Scripts {
-    <!-- DataTables, Chart.js, and SweetAlert2 CDNs -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.12.1/js/dataTables.bootstrap5.min.js"></script>
@@ -351,77 +379,157 @@
                 order: [[3, 'desc']]
             });
 
-            const ctx = document.getElementById('appointmentChart').getContext('2d');
-            const labels = @Html.Raw(JsonConvert.SerializeObject(labels));
-            const data = @Html.Raw(JsonConvert.SerializeObject(data));
-
-            new Chart(ctx, {
-                type: '@(ViewBag.ActiveTab == "Home" ? "line" : "bar")',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Appointments in Last 7 Days',
-                        data: data,
-                        backgroundColor: '@(ViewBag.ActiveTab == "Home" ? "rgba(54, 162, 235, 0.2)" : "rgba(54, 162, 235, 0.6)")',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1,
-                        fill: '@(ViewBag.ActiveTab == "Home" ? true : false)',
+            const last7Days = @Html.Raw(JsonConvert.SerializeObject(Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-i)).Reverse().Select(d => d.ToString("MMM dd")).ToArray()));
+            const barData = @Html.Raw(JsonConvert.SerializeObject(Model?.data?.Select(d => d.Count)?.ToArray() ?? new int[0]));
+            const lineData = {
+                labels: last7Days,
+                datasets: [
+                    {
+                        label: 'Accepted',
+                        data: @Html.Raw(JsonConvert.SerializeObject(Model?.data1?.Select(d => d.greenCount)?.ToArray() ?? new int[0])),
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        fill: false,
                         tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
+                    },
+                    {
+                        label: 'Rejected',
+                        data: @Html.Raw(JsonConvert.SerializeObject(Model?.data1?.Select(d => d.redCount)?.ToArray() ?? new int[0])),
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Completed',
+                        data: @Html.Raw(JsonConvert.SerializeObject(Model?.data1?.Select(d => d.blueCount)?.ToArray() ?? new int[0])),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            };
+
+            // Initialize charts only if canvas elements exist
+            const barChartCanvas = document.getElementById('barChart');
+            if (barChartCanvas) {
+                new Chart(barChartCanvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: last7Days,
+                        datasets: [{
+                            label: 'Appointments',
+                            data: barData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         }
                     }
-                }
-            });
+                });
+            } else {
+                console.warn('barChart canvas not found');
+            }
+
+            const lineChartCanvas = document.getElementById('lineChart');
+            if (lineChartCanvas) {
+                new Chart(lineChartCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: lineData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.warn('lineChart canvas not found');
+            }
         });
 
         function editAppointment(appointmentId) {
+            console.log('editAppointment called with ID:', appointmentId); // Debug: Check if function is called
             $.ajax({
                 url: '/Dashboard/GetAppointment',
                 type: 'GET',
                 data: { id: appointmentId },
                 success: function (response) {
-                    if (response.success) {
+                    console.log('AJAX Success:', response); // Debug: Log response
+                    if (response.success && response.appointment) {
                         $('#editAppointmentId').val(response.appointment.appointmentID);
                         $('#editAppointmentDate').val(response.appointment.appointmentDate);
 
                         const patientSelect = $('#editPatientSelect');
                         patientSelect.empty().append('<option value="">Select Patient</option>');
-                        response.patients.forEach(function (patient) {
-                            const selected = patient.value === response.appointment.patientID ? 'selected' : '';
-                            patientSelect.append(`<option value="${patient.value}" ${selected}>${patient.text}</option>`);
-                        });
+                        if (response.patients) {
+                            response.patients.forEach(function (patient) {
+                                const selected = patient.value === response.appointment.patientID ? 'selected' : '';
+                                patientSelect.append(`<option value="${patient.value}" ${selected}>${patient.text}</option>`);
+                            });
+                        }
 
                         const doctorSelect = $('#editDoctorSelect');
                         doctorSelect.empty().append('<option value="">Select Doctor</option>');
-                        response.doctors.forEach(function (doctor) {
-                            const selected = doctor.value === response.appointment.doctorID ? 'selected' : '';
-                            doctorSelect.append(`<option value="${doctor.value}" ${selected}>${doctor.text}</option>`);
-                        });
+                        if (response.doctors) {
+                            response.doctors.forEach(function (doctor) {
+                                const selected = doctor.value === response.appointment.doctorID ? 'selected' : '';
+                                doctorSelect.append(`<option value="${doctor.value}" ${selected}>${doctor.text}</option>`);
+                            });
+                        }
 
-                        $('#editAppointmentModal').modal('show');
+                        // Set the status radio button with fallback
+                        const status = response.appointment.status ? response.appointment.status.toLowerCase() : 'pending';
+                        console.log('Setting status:', status); // Debug: Log status
+                        $(`input[name="editStatus"][value="${status}"]`).prop('checked', true);
+
+                        // Ensure modal is initialized and shown
+                        const modal = new bootstrap.Modal(document.getElementById('editAppointmentModal'));
+                        modal.show();
                     } else {
+                        console.error('Response not successful or appointment missing:', response.message || 'No appointment data'); // Debug: Log error
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.message
+                            text: response.message || 'No appointment data returned.'
                         });
                     }
                 },
-                error: function () {
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', status, error); // Debug: Log AJAX error
+                    console.error('Response Text:', xhr.responseText); // Debug: Log response text
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Error loading appointment data.'
+                        text: 'Error loading appointment data. Please check the console for details.'
                     });
                 }
             });
@@ -432,10 +540,13 @@
                 appointmentID: $('#editAppointmentId').val(),
                 patientID: $('#editPatientSelect').val(),
                 doctorID: $('#editDoctorSelect').val(),
-                appointmentDate: $('#editAppointmentDate').val()
+                appointmentDate: $('#editAppointmentDate').val(),
+                status: $('input[name="editStatus"]:checked').val()
             };
 
-            if (!appointmentData.patientID || !appointmentData.doctorID || !appointmentData.appointmentDate) {
+            console.log('Saving appointment:', appointmentData); // Debug: Log data being sent
+
+            if (!appointmentData.patientID || !appointmentData.doctorID || !appointmentData.appointmentDate || !appointmentData.status) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Incomplete Form',
@@ -450,6 +561,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify(appointmentData),
                 success: function (response) {
+                    console.log('Save AJAX Success:', response); // Debug: Log response
                     if (response.success) {
                         $('#editAppointmentModal').modal('hide');
                         Swal.fire({
@@ -461,6 +573,7 @@
                             }
                         });
                     } else {
+                        console.error('Save not successful:', response.message); // Debug: Log error
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -468,7 +581,8 @@
                         });
                     }
                 },
-                error: function () {
+                error: function (xhr, status, error) {
+                    console.error('Save AJAX Error:', status, error); // Debug: Log AJAX error
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -479,6 +593,7 @@
         }
 
         function deleteAppointment(appointmentId) {
+            console.log('deleteAppointment called with ID:', appointmentId); // Debug: Check if function is called
             Swal.fire({
                 title: 'Are you sure?',
                 text: 'Do you want to delete this appointment?',
@@ -494,6 +609,7 @@
                         type: 'POST',
                         data: { id: appointmentId },
                         success: function (response) {
+                            console.log('Delete AJAX Success:', response); // Debug: Log response
                             if (response.success) {
                                 Swal.fire({
                                     icon: 'success',
@@ -504,6 +620,7 @@
                                     }
                                 });
                             } else {
+                                console.error('Delete not successful:', response.message); // Debug: Log error
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Error',
@@ -511,7 +628,8 @@
                                 });
                             }
                         },
-                        error: function () {
+                        error: function (xhr, status, error) {
+                            console.error('Delete AJAX Error:', status, error); // Debug: Log AJAX error
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
@@ -531,6 +649,8 @@
                 password: $('#doctorPassword').val()
             };
 
+            console.log('Saving doctor:', doctorData); // Debug: Log data being sent
+
             if (!doctorData.name || !doctorData.email || !doctorData.password || !doctorData.age) {
                 Swal.fire({
                     icon: 'warning',
@@ -546,6 +666,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify(doctorData),
                 success: function (response) {
+                    console.log('Add Doctor AJAX Success:', response); // Debug: Log response
                     if (response.success) {
                         $('#addDoctorModal').modal('hide');
                         $('#addDoctorForm')[0].reset();
@@ -558,6 +679,7 @@
                             }
                         });
                     } else {
+                        console.error('Add Doctor not successful:', response.message); // Debug: Log error
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -565,7 +687,8 @@
                         });
                     }
                 },
-                error: function () {
+                error: function (xhr, status, error) {
+                    console.error('Add Doctor AJAX Error:', status, error); // Debug: Log AJAX error
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
