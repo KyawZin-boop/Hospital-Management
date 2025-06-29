@@ -40,7 +40,7 @@ namespace Hospital_Management.Services
                     patientName = patient.Name ?? "Unknown", // Handle NULL Name
                     doctorName = doctor.Name ?? "Unknown",  // Handle NULL Name
                     AppointmentDate = appt.AppointmentDate,
-                    status = appt.status,
+                    status = appt.Status,
                     CreatedAt = appt.CreatedAt,
                     UpdatedAt = appt.UpdatedAt,
                     ActiveFlag = appt.ActiveFlag
@@ -68,7 +68,7 @@ namespace Hospital_Management.Services
                     patientName = patient.Name ?? "Unknown",
                     doctorName = doctor.Name ?? "Unknown",
                     AppointmentDate = appt.AppointmentDate,
-                    status = appt.status,
+                    status = appt.Status,
                     CreatedAt = appt.CreatedAt,
                     UpdatedAt = appt.UpdatedAt,
                     ActiveFlag = appt.ActiveFlag
@@ -117,7 +117,7 @@ namespace Hospital_Management.Services
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
             appointment.AppointmentID = Guid.NewGuid();
-            appointment.status = "pending";
+            appointment.Status = "pending";
             appointment.CreatedAt = DateTime.UtcNow;
             _context.Appointment.Add(appointment);
             await _context.SaveChangesAsync();
@@ -144,7 +144,7 @@ namespace Hospital_Management.Services
                 appointment.DoctorID = doctorId;
                 appointment.AppointmentDate = appointmentDate;
                 appointment.UpdatedAt = DateTime.UtcNow;
-                appointment.status = status;
+                appointment.Status = status;
 
                 _context.Appointment.Update(appointment);
                 await _context.SaveChangesAsync();
@@ -187,7 +187,7 @@ namespace Hospital_Management.Services
 
                 if (appointment == null)
                     return false;
-                appointment.status = status;
+                appointment.Status = status;
                 appointment.UpdatedAt = DateTime.UtcNow;
 
                 _context.Appointment.Update(appointment);

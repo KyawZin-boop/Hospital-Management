@@ -11,7 +11,7 @@ namespace Hospital_Management.Models
         public DateTime AppointmentDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string status { get; set; } = "pending"; // pending, accept,reject, complete
+        public string Status { get; set; } = "pending";
         public bool ActiveFlag { get; set; } = true;
     }
     public class AppointmentDTO

@@ -31,7 +31,7 @@ namespace Hospital_Management.Controllers
                 return role switch
                 {
                     "Patient" => RedirectToAction("Index", "Home"),
-                    "Doctor" => RedirectToAction("Table", "Home"),
+                    "Doctor" => RedirectToAction("Index", "Home"),
                     "Admin" => RedirectToAction("Index", "Dashboard"),
                     _ => RedirectToAction("Index", "Home")
                 };
